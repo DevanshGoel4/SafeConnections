@@ -1,0 +1,176 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Two Chat Boxes</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: lightblue url("img_tree.gif") no-repeat fixed center;
+        }
+        #chat-container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin-bottom: 20px;
+        }
+        .chat-box {
+            width: 45%;
+            height: 400px;
+            border: 5px solid #000000;
+            padding: 10px;
+            overflow-y: scroll;
+
+        }
+        .chat-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .person-a {
+            background-color: #e1f7d5;
+            text-align: left;
+        }
+        .person-b {
+            background-color: #ffbdbd;
+            text-align: right;
+        }
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            width: 45%;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .input-box button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+    <div id="chat-container">
+        <div id="chat-box-a" class="chat-box"></div>
+        <div id="chat-box-b" class="chat-box"></div>
+    </div>
+    <div class="input-container">
+        <div class="input-box">
+            <input type="text" id="message-input-a" placeholder="Person A: Enter your message">
+            <button onclick="sendMessage('a')">Send</button>
+        </div>
+        <div class="input-box">
+            <input type="text" id="message-input-b" placeholder="Person B: Enter your message">
+            <button onclick="sendMessage('b')">Send</button>
+        </div>
+    </div>
+    <div>
+        <button onclick="sendAndDownloadCSV()">Send</button>
+    </div>
+    <div id="all-messages"></div>
+
+    <script>
+        let csvContent = "data:text/csv;charset=utf-8,Person,Message\n";
+        const messages = [];
+
+        function sendMessage(person) {
+            const messageInputA = document.getElementById('message-input-a');
+            const messageInputB = document.getElementById('message-input-b');
+            const messageText = person === 'a' ? messageInputA.value.trim() : messageInputB.value.trim();
+            if (messageText === "") return;
+
+            const messageElementA = document.createElement('div');
+            const messageElementB = document.createElement('div');
+
+            messageElementA.className = 'chat-message ' + (person === 'a' ? 'person-a' : 'person-b');
+            messageElementB.className = 'chat-message ' + (person === 'a' ? 'person-a' : 'person-b');
+
+            messageElementA.innerText = messageText;
+            messageElementB.innerText = messageText;
+
+            const chatBoxA = document.getElementById('chat-box-a');
+            const chatBoxB = document.getElementById('chat-box-b');
+
+            chatBoxA.appendChild(messageElementA);
+            chatBoxB.appendChild(messageElementB);
+
+            chatBoxA.scrollTop = chatBoxA.scrollHeight;
+            chatBoxB.scrollTop = chatBoxB.scrollHeight;
+
+            if (person === 'a') {
+                messageInputA.value = "";
+            } else {
+                messageInputB.value = "";
+            }
+
+            // Save the message to the array and render all messages
+            messages.push({ person, message: messageText });
+            renderAllMessages();
+        }
+
+        function renderAllMessages() {
+            const allMessagesContainer = document.getElementById('all-messages');
+            allMessagesContainer.innerHTML = ''; // Clear previous messages
+
+            messages.forEach(({ person, message }) => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'chat-message ' + (person === 'a' ? 'person-a' : 'person-b');
+                messageElement.innerText = message;
+                allMessagesContainer.appendChild(messageElement);
+            });
+
+            allMessagesContainer.scrollTop = allMessagesContainer.scrollHeight;
+        }
+
+        function sendAndDownloadCSV() {
+            const messageInputA = document.getElementById('message-input-a');
+            const messageInputB = document.getElementById('message-input-b');
+            const messageTextA = messageInputA.value.trim();
+            const messageTextB = messageInputB.value.trim();
+
+            if (messageTextA !== "") {
+                sendMessage('a');
+                csvContent += `Person A,${messageTextA}\n`;
+            }
+
+            if (messageTextB !== "") {
+                sendMessage('b');
+                csvContent += `Person B,${messageTextB}\n`;
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'chat_messages.csv');
+            document.body.appendChild(link);
+
+            link.click();
+            document.body.removeChild(link);
+
+        }
+    </script>
+
+</body>
+</html>
